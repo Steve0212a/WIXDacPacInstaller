@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Fragment>
+    <!-- first, add the binary extension.  Be sure to specify the source file as WixDacPacExtension.CA.dll. -->
+    <Binary Id="WixDacPacExtensionBinary" SourceFile="..\ref\v1.0.0.2\WixDacPacExtension.CA.dll"/>
+
+    <!-- Create a custom action to run first and set up all the parameters that are passed to the Wix DacPac Extension.  -->
+    <!-- The property name MUST MATCH the name of the custom action that executes the binary defined above. -->
+    <!-- The parameters in the Value property are semi-colon delimited. -->
+    <CustomAction Id="SetupDacPacWIXDacPacInstallerExampleCustomAction"
+							Property="DacPacWIXDacPacInstallerExampleCustomAction" 
+							Value="ShowUI=True;KeepOpenOnError=True;SqlPackagePath=c:\Program Files (x86)\Microsoft SQL Server\120\DAC\bin\SqlPackage.exe;DacPacPath=[INSTALLFOLDER]WIXDacPacInstallerExample.dacpac;LogFilePath=[TempFolder]\WIXDacPacInstallerExample.dacpac.log;TargetServerName=[DATABASESERVER];TargetDatabaseName=WIXDacPacInstallerExample;OtherParameters=/p:RegisterDataTierApplication=True /p:BlockWhenDriftDetected=False /p:BlockOnPossibleDataLoss=False"
+		/>
+    <!-- This custom action will execute the extension with the parameters specified above. -->
+    <!-- NOTE: the Id of this custom action matches the Property of the previous custom action -->
+    <CustomAction Id="DacPacWIXDacPacInstallerExampleCustomAction" BinaryKey="WixDacPacExtensionBinary" DllEntry="Execute" Execute="deferred" Return="check"/>
+
+    <DirectoryRef Id="INSTALLFOLDER" >
+      <Component Id="DatabaseComponent" Guid="{5D62E225-9787-441F-A89B-AD0843860254}" >
+        <!-- install the DACPAC in the destination folder -->
+        <File Id="WIXDacPacInstallerExample.dacpac" Name="WIXDacPacInstallerExample.dacpac" KeyPath="yes" Source="..\WIXDacPacInstallerExample\bin\Debug\WIXDacPacInstallerExample.dacpac" />
+      </Component>
+    </DirectoryRef>
+
+    <ComponentGroup Id="DatabaseComponentGroup">
+      <ComponentRef Id="DatabaseComponent"/>
+    </ComponentGroup>
+  </Fragment>
+</Wix>

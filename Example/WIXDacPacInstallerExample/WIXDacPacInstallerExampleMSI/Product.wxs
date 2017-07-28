@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+	<Product Id="*" Name="WIXDacPacInstallerExampleMSI" Language="1033" Version="1.0.0.0" Manufacturer="Excelsior Consulting Group, Inc" UpgradeCode="e2270a36-7e20-4478-89b5-693bc9e8a0ba">
+		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+
+		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+		<MediaTemplate />
+
+    <!-- This property will store the database connection to use to install the DACPAC -->
+    <SetProperty Id="DATABASESERVER" After="AppSearch" Sequence="first" Value="localhost\SqlExpress2014" />
+
+    <UI Id="MyWixUI_FeatureTree">
+      <TextStyle Id="WixUI_Font_Normal" FaceName="Tahoma" Size="8" />
+      <TextStyle Id="WixUI_Font_Bigger" FaceName="Tahoma" Size="12" />
+      <TextStyle Id="WixUI_Font_Title" FaceName="Tahoma" Size="9" Bold="yes" />
+
+      <Property Id="DefaultUIFont" Value="WixUI_Font_Normal" />
+      <Property Id="WixUI_Mode" Value="FeatureTree" />
+
+      <DialogRef Id="ErrorDlg" />
+      <DialogRef Id="FatalError" />
+      <DialogRef Id="FilesInUse" />
+      <DialogRef Id="MsiRMFilesInUse" />
+      <DialogRef Id="PrepareDlg" />
+      <DialogRef Id="ProgressDlg" />
+      <DialogRef Id="ResumeDlg" />
+      <DialogRef Id="UserExit" />
+
+      <Publish Dialog="ExitDialog" Control="Finish" Event="EndDialog" Value="Return" Order="999">1</Publish>
+
+      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="CustomizeDlg">1</Publish>
+
+      <Publish Dialog="CustomizeDlg" Control="Back" Event="NewDialog" Value="MaintenanceTypeDlg" Order="1">Installed</Publish>
+      <Publish Dialog="CustomizeDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg" Order="2">NOT Installed</Publish>
+      <Publish Dialog="CustomizeDlg" Control="Next" Event="NewDialog" Value="DatabaseDialog" Order="1">1</Publish>
+
+      <!-- This dialog will prompt for the database connection to use to install the DACPAC -->
+      <Publish Dialog="DatabaseDialog" Control="Back" Event="NewDialog" Value="CustomizeDlg">1</Publish>
+      <Publish Dialog="DatabaseDialog" Control="Next" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
+
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="DatabaseDialog" Order="1">NOT Installed OR WixUI_InstallMode = "Change"</Publish>
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="MaintenanceTypeDlg" Order="2">Installed</Publish>
+
+      <Publish Dialog="MaintenanceWelcomeDlg" Control="Next" Event="NewDialog" Value="MaintenanceTypeDlg">1</Publish>
+
+      <Publish Dialog="MaintenanceTypeDlg" Control="ChangeButton" Event="NewDialog" Value="CustomizeDlg">1</Publish>
+      <Publish Dialog="MaintenanceTypeDlg" Control="RepairButton" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
+      <Publish Dialog="MaintenanceTypeDlg" Control="RemoveButton" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
+      <Publish Dialog="MaintenanceTypeDlg" Control="Back" Event="NewDialog" Value="MaintenanceWelcomeDlg">1</Publish>
+    </UI>
+    <Feature Id="DatabaseFeature" Title="Database" Level="1">
+      <ComponentGroupRef Id="DatabaseComponentGroup" />
+    </Feature>
+    <InstallExecuteSequence>
+      <!-- the custom actions must be added to the execute sequence.  The setup custom action MUST be run prior to the Dac Pac Installer custom action. -->
+      <Custom Action="SetupDacPacWIXDacPacInstallerExampleCustomAction" Before="DacPacWIXDacPacInstallerExampleCustomAction">
+        NOT Installed AND NOT REMOVE AND <![CDATA[&DatabaseFeature=3]]>
+      </Custom>
+      <Custom Action="DacPacWIXDacPacInstallerExampleCustomAction" After="InstallFiles">
+        NOT Installed AND NOT REMOVE AND <![CDATA[&DatabaseFeature=3]]>
+      </Custom>
+    </InstallExecuteSequence>
+	</Product>
+
+	<Fragment>
+		<Directory Id="TARGETDIR" Name="SourceDir">
+			<Directory Id="ProgramFilesFolder">
+				<Directory Id="INSTALLFOLDER" Name="WIXDacPacInstallerExampleMSI" />
+			</Directory>
+		</Directory>
+	</Fragment>
+</Wix>
